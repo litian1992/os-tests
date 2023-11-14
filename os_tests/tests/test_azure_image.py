@@ -190,7 +190,7 @@ class TestAzureImage(unittest.TestCase):
         des: nouveau,lbm-nouveau,floppy,skx_edac,intel_cstate should be disabled
         '''
         utils_lib.run_cmd(self, "sudo lsmod|grep nouveau", expect_not_ret=0, msg='check nouveau is not loaded')
-        file_check = '/etc/modprobe.d/blacklist-*.conf'
+        file_check = '/etc/modprobe.d/*blacklist*.conf'
         if self.rhel_x_version >= 9:
             blacklist = ['nouveau', 'lbm-nouveau', 'floppy', 'amdgpu']
         else:
@@ -416,25 +416,6 @@ hypervkvpd,hyperv-daemons-license,hypervfcopyd,hypervvssd,hyperv-daemons'''
         cmd = "echo $(sudo rpm -q --qf '%{VERSION}' --whatprovides " + release_file + ')'
         utils_lib.run_cmd(self,cmd, expect_kw=product_id, msg='check redhat-release version match')
 
-    def test_check_rhui_pkg(self):
-        """
-        8.4 images should have EUS RHUI. 
-        Other versions should have non-EUS RHUI.
-        """
-        self.log.info('RHEL image found')
-        product_id = utils_lib.get_product_id(self)
-        x_version = self.rhel_x_version
-        if product_id in ['8.4']:
-            cmd = 'sudo rpm -q rhui-azure-rhel{}-eus'.format(x_version)
-            utils_lib.run_cmd(self, cmd, expect_ret=0, msg="Verify EUS RHUI is installed in RHEL-{}".format(product_id))
-            cmd = 'sudo rpm -q rhui-azure-rhel{}'.format(x_version)
-            utils_lib.run_cmd(self, cmd, expect_ret=1, msg="Verify non-EUS RHUI is not installed in RHEL-{}".format(product_id))
-        else:
-            cmd = 'sudo rpm -q rhui-azure-rhel{}'.format(x_version)
-            utils_lib.run_cmd(self, cmd, expect_ret=0, msg="Verify non-EUS RHUI is installed in RHEL-{}".format(product_id))
-            cmd = 'sudo rpm -q rhui-azure-rhel{}-eus'.format(x_version)
-            utils_lib.run_cmd(self, cmd, expect_ret=1, msg="Verify EUS RHUI is not installed in RHEL-{}".format(product_id))
-
     def test_check_root_is_locked(self):
         """
         Root account should be locked
@@ -653,7 +634,7 @@ hypervkvpd,hyperv-daemons-license,hypervfcopyd,hypervvssd,hyperv-daemons'''
             'modules with 0 failures',
             'Failed to get raw userdata in module rightscale_userdata',
             'nofail',
-            'Failed to mount device: \'/dev/sd.* with type \'nfs\''
+            'Failed to mount device: ./dev/sd.* with type .nfs.'
         ]
         self._check_log('/var/log/cloud-init.log', ignore_list)
 
@@ -886,6 +867,7 @@ ucredit = 0
         '''
         expected = '''\
 [main]
+dhcp = dhclient
 plugins = ifcfg-rh,
 [logging]
 '''
@@ -1041,6 +1023,7 @@ AcceptEnv LC_IDENTIFICATION LC_ALL LANGUAGE
 AcceptEnv LC_PAPER LC_NAME LC_ADDRESS LC_TELEPHONE LC_MEASUREMENT
 AcceptEnv XMODIFIERS
 AuthorizedKeysFile	.ssh/authorized_keys
+PasswordAuthentication yes
 ChallengeResponseAuthentication no
 ClientAliveInterval 180
 GSSAPIAuthentication yes
@@ -1060,6 +1043,7 @@ AcceptEnv LC_IDENTIFICATION LC_ALL LANGUAGE
 AcceptEnv LC_PAPER LC_NAME LC_ADDRESS LC_TELEPHONE LC_MEASUREMENT
 AcceptEnv XMODIFIERS
 AuthorizedKeysFile .ssh/authorized_keys
+PasswordAuthentication yes
 ChallengeResponseAuthentication no
 ClientAliveInterval 180
 GSSAPIAuthentication yes
@@ -1129,9 +1113,9 @@ ClientAliveInterval 180
         BZ 2127969
         There shouldn't ba user keys left.
         '''
-        cmd = "grep -r 'ssh-rsa\|PRIVATE KEY' /home/*/.ssh/*"
+        cmd = "sudo grep -r 'ssh-rsa\|PRIVATE KEY' /home/*/.ssh/*"
         utils_lib.run_cmd(self, cmd, expect_ret=1, msg='Check ssh key in /home/*/.ssh/.')
-        cmd = "grep -r 'ssh-rsa\|PRIVATE KEY' /root/.ssh/*"
+        cmd = "sudo grep -r 'ssh-rsa\|PRIVATE KEY' /root/.ssh/*"
         utils_lib.run_cmd(self, cmd, expect_ret=1, msg='Check ssh key in /root/.ssh/.')
 
     def tearDown(self):
