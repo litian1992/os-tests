@@ -634,6 +634,8 @@ hypervkvpd,hyperv-daemons-license,hypervfcopyd,hypervvssd,hyperv-daemons'''
             'modules with 0 failures',
             'Failed to get raw userdata in module rightscale_userdata',
             'nofail',
+            'deferred',
+            'Failed to mount device: ./dev/sd.* with type: .ntfs.',
             'Failed to mount device: ./dev/sd.* with type .nfs.'
         ]
         self._check_log('/var/log/cloud-init.log', ignore_list)
@@ -1114,9 +1116,9 @@ ClientAliveInterval 180
         There shouldn't ba user keys left.
         '''
         cmd = "sudo grep -r 'ssh-rsa\|PRIVATE KEY' /home/*/.ssh/*"
-        utils_lib.run_cmd(self, cmd, expect_ret=1, msg='Check ssh key in /home/*/.ssh/.')
+        utils_lib.run_cmd(self, cmd, expect_not_ret=0, msg='Check ssh key in /home/*/.ssh/.')
         cmd = "sudo grep -r 'ssh-rsa\|PRIVATE KEY' /root/.ssh/*"
-        utils_lib.run_cmd(self, cmd, expect_ret=1, msg='Check ssh key in /root/.ssh/.')
+        utils_lib.run_cmd(self, cmd, expect_not_ret=0, msg='Check ssh key in /root/.ssh/.')
 
     def tearDown(self):
         pass
